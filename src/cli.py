@@ -31,35 +31,35 @@ console = Console()
 CLI_CONFIG_PATH = os.path.expanduser("~/.beaglemind_cli_config.json")
 
 # Available models from gradio_app.py
-GROQ_MODELS = [
-    "llama-3.3-70b-versatile",
-    "llama-3.1-8b-instant", 
-    "gemma2-9b-it",
-    "meta-llama/llama-4-scout-17b-16e-instruct",
-    "meta-llama/llama-4-maverick-17b-128e-instruct", 
-    "deepseek-r1-distill-llama-70b"
-]
+# GROQ_MODELS = [
+#     "llama-3.3-70b-versatile",
+#     "llama-3.1-8b-instant", 
+#     "gemma2-9b-it",
+#     "meta-llama/llama-4-scout-17b-16e-instruct",
+#     "meta-llama/llama-4-maverick-17b-128e-instruct", 
+#     "deepseek-r1-distill-llama-70b"
+# ]
 
-OPENAI_MODELS = [
-    "gpt-4o",
-    "gpt-4o-mini", 
-    "gpt-4-turbo",
-    "gpt-3.5-turbo",
-    "o1-preview",
-    "o1-mini"
-]
+# OPENAI_MODELS = [
+#     "gpt-4o",
+#     "gpt-4o-mini", 
+#     "gpt-4-turbo",
+#     "gpt-3.5-turbo",
+#     "o1-preview",
+#     "o1-mini"
+# ]
 
-OLLAMA_MODELS = [
-    "huihui_ai/qwen2.5-coder-abliterate:0.5b",
-    "deepseek-r1:1.5b",
-    "smollm2:135m",
-    "smollm2:360m", 
-    "qwen3:1.7b",
-    "qwen2.5-coder:0.5b",
-    "gemma3:270m"
-]
+# OLLAMA_MODELS = [
+#     "huihui_ai/qwen2.5-coder-abliterate:0.5b",
+#     "deepseek-r1:1.5b",
+#     "smollm2:135m",
+#     "smollm2:360m", 
+#     "qwen3:1.7b",
+#     "qwen2.5-coder:0.5b",
+#     "gemma3:270m"
+# ]
 
-LLM_BACKENDS = ["groq", "openai", "ollama"]
+# LLM_BACKENDS = ["groq", "openai", "ollama"]
 
 # === Output cleaning to remove meta-thinking / chain-of-thought ===
 def clean_llm_response_text(response: str) -> str:
@@ -121,46 +121,57 @@ BEAGLEMIND_BANNER = """
 class BeagleMindCLI:
     def __init__(self):
         self.qa_system = None
-        self.config = self.load_config()
-        
-    def load_config(self) -> Dict[str, Any]:
-        """Load CLI configuration from file"""
-        default_config = {
-            "collection_name": COLLECTION_NAME,
-            "default_backend": "groq",
-            "default_model": GROQ_MODELS[0],
-            "default_temperature": 0.3,
-            "default_use_tools": False
-        }
-        
-        if os.path.exists(CLI_CONFIG_PATH):
-            try:
-                with open(CLI_CONFIG_PATH, 'r') as f:
-                    config = json.load(f)
-                    # Merge with defaults for any missing keys
-                    for key, value in default_config.items():
-                        if key not in config:
-                            config[key] = value
-                    return config
-            except Exception as e:
-                console.print(f"[yellow]Warning: Could not load config: {e}[/yellow]")
-                return default_config
-        else:
-            return default_config
-    
+        self.config_manager = ConfigManager()
+
+    def get_default_model(self):
+        return self.config_manager.get("default_model")
+
+    def set_default_model(self, model_name):
+        self.config_manager.set("default_model", model_name)
+
     def save_config(self):
-        """Save CLI configuration to file"""
-        try:
-            os.makedirs(os.path.dirname(CLI_CONFIG_PATH), exist_ok=True)
-            with open(CLI_CONFIG_PATH, 'w') as f:
-                json.dump(self.config, f, indent=2)
-        except Exception as e:
-            console.print(f"[yellow]Warning: Could not save config: {e}[/yellow]")
+        self.config_manager.save()
+
+        
+    # def load_config(self) -> Dict[str, Any]:
+    #     """Load CLI configuration from file"""
+    #     default_config = {
+    #         "collection_name": COLLECTION_NAME,
+    #         "default_backend": "groq",
+    #         "default_model": GROQ_MODELS[0],
+    #         "default_temperature": 0.3,
+    #         "default_use_tools": False
+    #     }
+        
+        # if os.path.exists(CLI_CONFIG_PATH):
+        #     try:
+        #         with open(CLI_CONFIG_PATH, 'r') as f:
+        #             config = json.load(f)
+        #             # Merge with defaults for any missing keys
+        #             for key, value in default_config.items():
+        #                 if key not in config:
+        #                     config[key] = value
+        #             return config
+        #     except Exception as e:
+        #         console.print(f"[yellow]Warning: Could not load config: {e}[/yellow]")
+        #         return default_config
+        # else:
+            # return default_config
+    
+    # def save_config(self):
+    #     """Save CLI configuration to file"""
+    #     try:
+    #         os.makedirs(os.path.dirname(CLI_CONFIG_PATH), exist_ok=True)
+    #         with open(CLI_CONFIG_PATH, 'w') as f:
+    #             json.dump(self.config, f, indent=2)
+    #     except Exception as e:
+    #         console.print(f"[yellow]Warning: Could not save config: {e}[/yellow]")
     
     def get_qa_system(self):
         """Get or create QA system instance"""
         if not self.qa_system:
-            collection_name = self.config.get("collection_name", COLLECTION_NAME)
+            # collection_name = self.config.get("collection_name", COLLECTION_NAME)
+            collection_name = self.config_manager.get("collection_name", COLLECTION_NAME)
             self.qa_system = QASystem(collection_name=collection_name)
             # Initialize a fresh in-RAM conversation for this CLI session
             try:
@@ -186,28 +197,39 @@ class BeagleMindCLI:
         if backend:
             backend = backend.lower()
             if backend == "groq":
-                add_models_to_table("groq", GROQ_MODELS, "Cloud")
+                # add_models_to_table("groq", self.config_manager.get("groq"), "Cloud") 
+                add_models_to_table("groq", self.config_manager.get_models("groq"), "Cloud")
             elif backend == "openai":
-                add_models_to_table("openai", OPENAI_MODELS, "Cloud")
+                # add_models_to_table("openai", OPENAI_MODELS, "Cloud")
+                add_models_to_table("openai", self.config_manager.get_models("openai"), "Cloud")
             elif backend == "ollama":
-                add_models_to_table("ollama", OLLAMA_MODELS, "Local")
+                # add_models_to_table("ollama", OLLAMA_MODELS, "Local")
+                add_models_to_table("ollama", self.config_manager.get_models("ollama"), "Local")
             else:
-                console.print(f"[red]Unknown backend: {backend}. Available: {', '.join(LLM_BACKENDS)}[/red]")
+                # console.print(f"[red]Unknown backend: {backend}. Available: {', '.join(LLM_BACKENDS)}[/red]")
+                console.print(f"[red]Unknown backend: {backend}. Available: {', '.join(self.config_manager.get_backends())}[/red]")
                 return
         else:
             # Show all backends
-            add_models_to_table("groq", GROQ_MODELS, "Cloud")
-            add_models_to_table("openai", OPENAI_MODELS, "Cloud")
-            add_models_to_table("ollama", OLLAMA_MODELS, "Local")
+            # add_models_to_table("groq", GROQ_MODELS, "Cloud")
+            # add_models_to_table("openai", OPENAI_MODELS, "Cloud")
+            # add_models_to_table("ollama", OLLAMA_MODELS, "Local")
+            add_models_to_table("groq", self.config_manager.get_models("groq"), "Cloud")
+            add_models_to_table("openai",self.config_manager.get_models("openai") , "Cloud")
+            add_models_to_table("ollama",self.config_manager.get_models("ollama") , "Local")
         
         console.print(table)
         
         # Show current default settings
         current_panel = Panel(
             f"Current Defaults:\n"
-            f"Backend: [cyan]{self.config.get('default_backend', 'groq').upper()}[/cyan]\n"
-            f"Model: [magenta]{self.config.get('default_model', GROQ_MODELS[0])}[/magenta]\n"
-            f"Temperature: [yellow]{self.config.get('default_temperature', 0.3)}[/yellow]",
+            # f"Backend: [cyan]{self.config.get('default_backend', 'groq').upper()}[/cyan]\n"
+            # f"Model: [magenta]{self.config.get('default_model', GROQ_MODELS[0])}[/magenta]\n"
+            # f"Temperature: [yellow]{self.config.get('default_temperature', 0.3)}[/yellow]",
+            f"Backend: [cyan]{self.config_manager.get('default_backend','groq').upper()}[/cyan]\n"
+            # f"Model: [magenta]{self.config_manager.get('default_model',GROQ_MODELS[0])}[/magenta]\n"
+            f"Model: [magenta]{self.config_manager.get('default_model', self.config_manager.get_models('groq')[0])}[/magenta]\n"
+            f"Temperature: [yellow]{self.config_manager.get('default_temperature', 0.3)}[/yellow]",
             title="Current Configuration",
             border_style="blue"
         )
@@ -215,17 +237,23 @@ class BeagleMindCLI:
     
     def _check_model_availability(self, backend: str, model: str) -> str:
         """Check if a model is available (basic check)"""
+        # try:
+        #     if backend == "groq":
+        #         return "Available" if model in GROQ_MODELS else "Unknown"
+        #     elif backend == "openai":
+        #         return "Available" if model in OPENAI_MODELS else "Unknown"
+        #     elif backend == "ollama":
+        #         return "Available" if model in OLLAMA_MODELS else "Unknown"
+        #     else:
+        #         return "Unknown Backend"
+        # except Exception:
+        #     return "Check Failed"
         try:
-            if backend == "groq":
-                return "Available" if model in GROQ_MODELS else "Unknown"
-            elif backend == "openai":
-                return "Available" if model in OPENAI_MODELS else "Unknown"
-            elif backend == "ollama":
-                return "Available" if model in OLLAMA_MODELS else "Unknown"
-            else:
-                return "Unknown Backend"
+          models = self.config_manager.get_models(backend)
+          return "Available" if model in models else "Unknown"
         except Exception:
-            return "Check Failed"
+          return "Check Failed"
+
     
     def chat(self, prompt: str, backend: str = None, model: str = None, 
              temperature: float = None, search_strategy: str = "adaptive",
@@ -241,21 +269,40 @@ class BeagleMindCLI:
             return
         
         # Use provided parameters or defaults
-        backend = backend or self.config.get("default_backend", "groq")
-        model = model or self.config.get("default_model", GROQ_MODELS[0])
-        temperature = temperature if temperature is not None else self.config.get("default_temperature", 0.3)
+        # backend = backend or self.config.get("default_backend", "groq")
+        # model = model or self.config.get("default_model", GROQ_MODELS[0])
+        # temperature = temperature if temperature is not None else self.config.get("default_temperature", 0.3)
+        # model = model or self.config_manager.get("default_model", GROQ_MODELS[0])
+
+        backend = backend or self.config_manager.get("default_backend", "groq")
+        available_models = self.config_manager.get_models(backend)
+        default_model = available_models[0] if available_models else "unknown-model"
+        model = model or self.config_manager.get("default_model", default_model)
+        temperature = temperature if temperature is not None else self.config_manager.get("default_temperature", 0.3)
+
+
         
         # Validate backend and model
-        if backend not in LLM_BACKENDS:
-            console.print(f"[red]Invalid backend: {backend}. Available: {', '.join(LLM_BACKENDS)}[/red]")
-            return
+        # if backend not in LLM_BACKENDS:
+        #     console.print(f"[red]Invalid backend: {backend}. Available: {', '.join(LLM_BACKENDS)}[/red]")
+        #     return
         
-        if backend == "groq":
-            available_models = GROQ_MODELS
-        elif backend == "openai":
-            available_models = OPENAI_MODELS
-        else:  # ollama
-            available_models = OLLAMA_MODELS
+        # if backend == "groq":
+        #     available_models = GROQ_MODELS
+        # elif backend == "openai":
+        #     available_models = OPENAI_MODELS
+        # else:  # ollama
+        #     available_models = OLLAMA_MODELS
+
+        # Validate backend
+        available_backends = self.config_manager.get("available_backends", [])
+        if backend not in available_backends:
+            console.print(f"[red]Invalid backend: {backend}. Available: {', '.join(available_backends)}[/red]")
+            return
+
+        # Get models for the selected backend
+        available_models = self.config_manager.get_models(backend)
+
             
         if model not in available_models:
             console.print(f"[red]Model '{model}' not available for backend '{backend}'[/red]")
@@ -344,27 +391,47 @@ class BeagleMindCLI:
         # Create QA system if not exists
         if collection:
             # Recreate QA system with the requested collection
-            self.config["collection_name"] = collection
+            # self.config["collection_name"] = collection #use setter here
+            self.config_manager.set("collection_name", collection)
             self.qa_system = None
         if not self.qa_system:
             self.qa_system = self.get_qa_system()
         
         # Use provided parameters or defaults
-        backend = backend or self.config.get("default_backend", "groq")
-        model = model or self.config.get("default_model", GROQ_MODELS[0])
-        temperature = temperature if temperature is not None else self.config.get("default_temperature", 0.3)
+        # backend = backend or self.config.get("default_backend", "groq")
+        # model = model or self.config.get("default_model", GROQ_MODELS[0])
+        # temperature = temperature if temperature is not None else self.config.get("default_temperature", 0.3)
+        backend = backend or self.config_manager.get("default_backend", "groq")
+        # Get available models for the backend
+        available_models = self.config_manager.get_models(backend)
+        model = model or self.config_manager.get("default_model", available_models[0] if available_models else "unknown-model")
+        temperature = temperature if temperature is not None else self.config_manager.get("default_temperature", 0.3)
+
         
         # Validate backend and model
-        if backend not in LLM_BACKENDS:
-            console.print(f"[red]Error: Invalid backend '{backend}'. Available: {', '.join(LLM_BACKENDS)}[/red]")
-            return
+        # if backend not in LLM_BACKENDS:
+        #     console.print(f"[red]Error: Invalid backend '{backend}'. Available: {', '.join(LLM_BACKENDS)}[/red]")
+        #     return
         
-        if backend == "groq":
-            available_models = GROQ_MODELS
-        elif backend == "openai":
-            available_models = OPENAI_MODELS
-        else:  # ollama
-            available_models = OLLAMA_MODELS
+        # if backend == "groq":
+        #     available_models = GROQ_MODELS
+        # elif backend == "openai":
+        #     available_models = OPENAI_MODELS
+        # else:  # ollama
+        #     available_models = OLLAMA_MODELS
+
+        available_backends = self.config_manager.get("available_backends", [])
+        if backend not in available_backends:
+            console.print(f"[red]Invalid backend: {backend}. Available: {', '.join(available_backends)}[/red]")
+            return
+
+        # Get models for the selected backend
+        available_models = self.config_manager.get_models(backend)
+
+            
+        if model not in available_models:
+            console.print(f"[red]Model '{model}' not available for backend '{backend}'[/red]")
+            return
             
         if model not in available_models:
             console.print(f"[red]Error: Model '{model}' not available for backend '{backend}'[/red]")
@@ -511,7 +578,7 @@ class BeagleMindCLI:
             f"[cyan]Temperature:[/cyan] {temperature}\n"
             f"[cyan]Search Strategy:[/cyan] {search_strategy}\n"
             f"[cyan]Show Sources:[/cyan] {'Yes' if show_sources else 'No'}\n\n"
-            f"[dim]Collection:[/dim] {self.config.get('collection_name', 'N/A')}",
+            f"[dim]Collection:[/dim] {self.config_manager.get('collection_name', 'N/A')}",
             title="Configuration",
             border_style="magenta"
         )
@@ -555,7 +622,7 @@ def chat(prompt, backend, model, temperature, strategy, sources, tools, interact
     beaglemind = BeagleMindCLI()
     if collection:
         # Apply collection override before creating QA system
-        beaglemind.config["collection_name"] = collection
+        beaglemind.config_manager["collection_name"] = collection
         beaglemind.qa_system = None
     
     # Convert tools flag to use_tools boolean (paired flag: --tools to enable)
