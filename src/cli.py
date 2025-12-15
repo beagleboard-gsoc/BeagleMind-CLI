@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import argparse
 import logging
 import sys
@@ -33,16 +31,16 @@ CLI_CONFIG_PATH = os.path.expanduser("~/.beaglemind_cli_config.json")
 # Available models from gradio_app.py
 # GROQ_MODELS = [
 #     "llama-3.3-70b-versatile",
-#     "llama-3.1-8b-instant", 
+#     "llama-3.1-8b-instant",
 #     "gemma2-9b-it",
 #     "meta-llama/llama-4-scout-17b-16e-instruct",
-#     "meta-llama/llama-4-maverick-17b-128e-instruct", 
+#     "meta-llama/llama-4-maverick-17b-128e-instruct",
 #     "deepseek-r1-distill-llama-70b"
 # ]
 
 # OPENAI_MODELS = [
 #     "gpt-4o",
-#     "gpt-4o-mini", 
+#     "gpt-4o-mini",
 #     "gpt-4-turbo",
 #     "gpt-3.5-turbo",
 #     "o1-preview",
@@ -53,15 +51,17 @@ CLI_CONFIG_PATH = os.path.expanduser("~/.beaglemind_cli_config.json")
 #     "huihui_ai/qwen2.5-coder-abliterate:0.5b",
 #     "deepseek-r1:1.5b",
 #     "smollm2:135m",
-#     "smollm2:360m", 
+#     "smollm2:360m",
 #     "qwen3:1.7b",
 #     "qwen2.5-coder:0.5b",
 #     "gemma3:270m"
 # ]
 
-# LLM_BACKENDS = ["groq", "openai", "ollama"]
+LLM_BACKENDS = ["groq", "openai", "ollama"]
 
 # === Output cleaning to remove meta-thinking / chain-of-thought ===
+
+
 def clean_llm_response_text(response: str) -> str:
     """Remove chain-of-thought style content and leave the final answer.
 
@@ -73,10 +73,16 @@ def clean_llm_response_text(response: str) -> str:
         return response
     try:
         # Remove explicit thought tags
-        cleaned = re.sub(r'<think>.*?</think>', '', response, flags=re.DOTALL | re.IGNORECASE)
-        cleaned = re.sub(r'<thinking>.*?</thinking>', '', cleaned, flags=re.DOTALL | re.IGNORECASE)
+        cleaned = re.sub(r'<think>.*?</think>', '', response,
+                         flags=re.DOTALL | re.IGNORECASE)
+        cleaned = re.sub(
+            r'<thinking>.*?</thinking>',
+            '',
+            cleaned,
+            flags=re.DOTALL | re.IGNORECASE)
 
-        # Split into paragraphs and filter obvious meta-thought before first real paragraph
+        # Split into paragraphs and filter obvious meta-thought before first
+        # real paragraph
         paras = re.split(r'\n{2,}', cleaned.strip())
         meta_patterns = [
             r"\bI (should|need to|will|am going to|must)\b",
@@ -96,7 +102,8 @@ def clean_llm_response_text(response: str) -> str:
             if not non_meta_seen and meta_re.search(p):
                 # skip meta planning paragraphs at the start
                 continue
-            p2 = re.sub(r'^(?:Note:|Meta:).*$', '', p, flags=re.IGNORECASE | re.MULTILINE).strip()
+            p2 = re.sub(r'^(?:Note:|Meta:).*$', '', p,
+                        flags=re.IGNORECASE | re.MULTILINE).strip()
             if p2:
                 filtered.append(p2)
                 non_meta_seen = True
@@ -108,15 +115,17 @@ def clean_llm_response_text(response: str) -> str:
     except Exception:
         return response
 
+
 # ASCII Art Banner for BeagleMind
 BEAGLEMIND_BANNER = """
-██████╗ ███████╗ █████╗  ██████╗ ██╗     ███████╗███╗   ███╗██╗███╗   ██╗██████╗ 
+██████╗ ███████╗ █████╗  ██████╗ ██╗     ███████╗███╗   ███╗██╗███╗   ██╗██████╗
 ██╔══██╗██╔════╝██╔══██╗██╔════╝ ██║     ██╔════╝████╗ ████║██║████╗  ██║██╔══██╗
 ██████╔╝█████╗  ███████║██║  ███╗██║     █████╗  ██╔████╔██║██║██╔██╗ ██║██║  ██║
 ██╔══██╗██╔══╝  ██╔══██║██║   ██║██║     ██╔══╝  ██║╚██╔╝██║██║██║╚██╗██║██║  ██║
 ██████╔╝███████╗██║  ██║╚██████╔╝███████╗███████╗██║ ╚═╝ ██║██║██║ ╚████║██████╔╝
-╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═════╝ 
+╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═════╝
 """
+
 
 class BeagleMindCLI:
     def __init__(self):
@@ -132,7 +141,6 @@ class BeagleMindCLI:
     def save_config(self):
         self.config_manager.save()
 
-        
     # def load_config(self) -> Dict[str, Any]:
     #     """Load CLI configuration from file"""
     #     default_config = {
@@ -142,7 +150,7 @@ class BeagleMindCLI:
     #         "default_temperature": 0.3,
     #         "default_use_tools": False
     #     }
-        
+
         # if os.path.exists(CLI_CONFIG_PATH):
         #     try:
         #         with open(CLI_CONFIG_PATH, 'r') as f:
@@ -156,8 +164,8 @@ class BeagleMindCLI:
         #         console.print(f"[yellow]Warning: Could not load config: {e}[/yellow]")
         #         return default_config
         # else:
-            # return default_config
-    
+        # return default_config
+
     # def save_config(self):
     #     """Save CLI configuration to file"""
     #     try:
@@ -166,12 +174,13 @@ class BeagleMindCLI:
     #             json.dump(self.config, f, indent=2)
     #     except Exception as e:
     #         console.print(f"[yellow]Warning: Could not save config: {e}[/yellow]")
-    
+
     def get_qa_system(self):
         """Get or create QA system instance"""
         if not self.qa_system:
             # collection_name = self.config.get("collection_name", COLLECTION_NAME)
-            collection_name = self.config_manager.get("collection_name", COLLECTION_NAME)
+            collection_name = self.config_manager.get(
+                "collection_name", COLLECTION_NAME)
             self.qa_system = QASystem(collection_name=collection_name)
             # Initialize a fresh in-RAM conversation for this CLI session
             try:
@@ -179,7 +188,7 @@ class BeagleMindCLI:
             except Exception:
                 pass
         return self.qa_system
-    
+
     def list_models(self, backend: str = None):
         """List available models for specified backend or all backends"""
         table = Table(title="Available BeagleMind Models")
@@ -187,54 +196,79 @@ class BeagleMindCLI:
         table.add_column("Model Name", style="magenta")
         table.add_column("Type", style="green")
         table.add_column("Status", style="yellow")
-        
-        def add_models_to_table(backend_name: str, models: List[str], model_type: str):
+
+        def add_models_to_table(
+                backend_name: str,
+                models: List[str],
+                model_type: str):
             for model in models:
                 # Check if model is available (basic check)
                 status = self._check_model_availability(backend_name, model)
                 table.add_row(backend_name.upper(), model, model_type, status)
-        
+
         if backend:
             backend = backend.lower()
             if backend == "groq":
-                # add_models_to_table("groq", self.config_manager.get("groq"), "Cloud") 
-                add_models_to_table("groq", self.config_manager.get_models("groq"), "Cloud")
+                # add_models_to_table("groq", self.config_manager.get("groq"), "Cloud")
+                add_models_to_table(
+                    "groq", self.config_manager.get_models("groq"), "Cloud")
             elif backend == "openai":
                 # add_models_to_table("openai", OPENAI_MODELS, "Cloud")
-                add_models_to_table("openai", self.config_manager.get_models("openai"), "Cloud")
+                add_models_to_table(
+                    "openai", self.config_manager.get_models("openai"), "Cloud")
             elif backend == "ollama":
                 # add_models_to_table("ollama", OLLAMA_MODELS, "Local")
-                add_models_to_table("ollama", self.config_manager.get_models("ollama"), "Local")
+                add_models_to_table(
+                    "ollama", self.config_manager.get_models("ollama"), "Local")
             else:
                 # console.print(f"[red]Unknown backend: {backend}. Available: {', '.join(LLM_BACKENDS)}[/red]")
-                console.print(f"[red]Unknown backend: {backend}. Available: {', '.join(self.config_manager.get_backends())}[/red]")
+                console.print(
+                    f"[red]Unknown backend: {backend}. Available: {
+                        ', '.join(
+                            self.config_manager.get_backends())}[/red]")
                 return
         else:
             # Show all backends
             # add_models_to_table("groq", GROQ_MODELS, "Cloud")
             # add_models_to_table("openai", OPENAI_MODELS, "Cloud")
             # add_models_to_table("ollama", OLLAMA_MODELS, "Local")
-            add_models_to_table("groq", self.config_manager.get_models("groq"), "Cloud")
-            add_models_to_table("openai",self.config_manager.get_models("openai") , "Cloud")
-            add_models_to_table("ollama",self.config_manager.get_models("ollama") , "Local")
-        
+            add_models_to_table(
+                "groq", self.config_manager.get_models("groq"), "Cloud")
+            add_models_to_table(
+                "openai",
+                self.config_manager.get_models("openai"),
+                "Cloud")
+            add_models_to_table(
+                "ollama",
+                self.config_manager.get_models("ollama"),
+                "Local")
+
         console.print(table)
-        
+
         # Show current default settings
         current_panel = Panel(
             f"Current Defaults:\n"
             # f"Backend: [cyan]{self.config.get('default_backend', 'groq').upper()}[/cyan]\n"
             # f"Model: [magenta]{self.config.get('default_model', GROQ_MODELS[0])}[/magenta]\n"
             # f"Temperature: [yellow]{self.config.get('default_temperature', 0.3)}[/yellow]",
-            f"Backend: [cyan]{self.config_manager.get('default_backend','groq').upper()}[/cyan]\n"
+            f"Backend: [cyan]{
+                self.config_manager.get(
+                    'default_backend',
+                    'groq').upper()}[/cyan]\n"
             # f"Model: [magenta]{self.config_manager.get('default_model',GROQ_MODELS[0])}[/magenta]\n"
-            f"Model: [magenta]{self.config_manager.get('default_model', self.config_manager.get_models('groq')[0])}[/magenta]\n"
-            f"Temperature: [yellow]{self.config_manager.get('default_temperature', 0.3)}[/yellow]",
+            f"Model: [magenta]{
+                self.config_manager.get(
+                    'default_model',
+                    self.config_manager.get_models('groq')[0])}[/magenta]\n"
+            f"Temperature: [yellow]{
+                self.config_manager.get(
+                    'default_temperature',
+                    0.3)}[/yellow]",
             title="Current Configuration",
             border_style="blue"
         )
         console.print(current_panel)
-    
+
     def _check_model_availability(self, backend: str, model: str) -> str:
         """Check if a model is available (basic check)"""
         # try:
@@ -249,25 +283,24 @@ class BeagleMindCLI:
         # except Exception:
         #     return "Check Failed"
         try:
-          models = self.config_manager.get_models(backend)
-          return "Available" if model in models else "Unknown"
+            models = self.config_manager.get_models(backend)
+            return "Available" if model in models else "Unknown"
         except Exception:
-          return "Check Failed"
+            return "Check Failed"
 
-    
-    def chat(self, prompt: str, backend: str = None, model: str = None, 
+    def chat(self, prompt: str, backend: str = None, model: str = None,
              temperature: float = None, search_strategy: str = "adaptive",
              show_sources: bool = False, use_tools: bool = True):
         """Chat with BeagleMind using the specified parameters"""
-        
+
         # Create QA system if not exists
         if not self.qa_system:
             self.qa_system = self.get_qa_system()
-        
+
         if not prompt.strip():
             console.print("[yellow]Empty prompt provided.[/yellow]")
             return
-        
+
         # Use provided parameters or defaults
         # backend = backend or self.config.get("default_backend", "groq")
         # model = model or self.config.get("default_model", GROQ_MODELS[0])
@@ -277,16 +310,16 @@ class BeagleMindCLI:
         backend = backend or self.config_manager.get("default_backend", "groq")
         available_models = self.config_manager.get_models(backend)
         default_model = available_models[0] if available_models else "unknown-model"
-        model = model or self.config_manager.get("default_model", default_model)
-        temperature = temperature if temperature is not None else self.config_manager.get("default_temperature", 0.3)
+        model = model or self.config_manager.get(
+            "default_model", default_model)
+        temperature = temperature if temperature is not None else self.config_manager.get(
+            "default_temperature", 0.3)
 
-
-        
         # Validate backend and model
         # if backend not in LLM_BACKENDS:
         #     console.print(f"[red]Invalid backend: {backend}. Available: {', '.join(LLM_BACKENDS)}[/red]")
         #     return
-        
+
         # if backend == "groq":
         #     available_models = GROQ_MODELS
         # elif backend == "openai":
@@ -297,17 +330,19 @@ class BeagleMindCLI:
         # Validate backend
         available_backends = self.config_manager.get("available_backends", [])
         if backend not in available_backends:
-            console.print(f"[red]Invalid backend: {backend}. Available: {', '.join(available_backends)}[/red]")
+            console.print(
+                f"[red]Invalid backend: {backend}. Available: {
+                    ', '.join(available_backends)}[/red]")
             return
 
         # Get models for the selected backend
         available_models = self.config_manager.get_models(backend)
 
-            
         if model not in available_models:
-            console.print(f"[red]Model '{model}' not available for backend '{backend}'[/red]")
+            console.print(
+                f"[red]Model '{model}' not available for backend '{backend}'[/red]")
             return
-        
+
         try:
             with console.status("[bold green]Processing your question..."):
                 # Use the enhanced ask_question method from QA system
@@ -317,21 +352,31 @@ class BeagleMindCLI:
                     model_name=model,
                     temperature=temperature,
                     llm_backend=backend,
-                    use_tools=use_tools  # Use the parameter passed to the method
+                    use_tools=use_tools,  # Use the parameter passed to the method
                 )
-            
+
             if result.get('success', True):
                 # Display the response
                 console.print("\n" + "="*60)
                 console.print(f"[bold cyan]🤖 BeagleMind Response:[/bold cyan]\n")
-                
+
                 answer = result.get('answer', 'No response generated')
                 # Remove meta-thinking if any leaked
                 answer = clean_llm_response_text(answer)
+
+                # If Groq returned a 401 invalid_api_key payload, replace it with a human-friendly message
+                if isinstance(answer, str) and "invalid_api_key" in answer:
+                    answer = (
+                        "Groq API key is missing or invalid. "
+                        "Please set the GROQ_API_KEY environment variable with a valid key. "
+                        "See the README Environment Setup section for Groq configuration."
+                    )
+
                 if answer:
                     # Render markdown for better formatting
                     console.print(Markdown(answer))
-                
+
+
                 # Show tool results if any
                 if result.get('tool_results') and len(result['tool_results']) > 0:
                     console.print(f"\n[bold yellow]🛠️ Tools Used:[/bold yellow]")
@@ -339,17 +384,17 @@ class BeagleMindCLI:
                     tool_table.add_column("Tool", style="cyan")
                     tool_table.add_column("Status", style="green")
                     tool_table.add_column("Result", style="dim")
-                    
+
                     for tool_result in result['tool_results']:
                         status = "✅ Success" if tool_result['result'].get('success', True) else "❌ Failed"
                         result_preview = str(tool_result['result'])[:50] + "..."
                         tool_table.add_row(
-                            tool_result['tool'], 
-                            status, 
-                            result_preview
+                            tool_result['tool'],
+                            status,
+                            result_preview,
                         )
                     console.print(tool_table)
-                
+
                 # Show sources if requested
                 if show_sources and result.get('sources'):
                     console.print(f"\n[bold blue]📚 Sources:[/bold blue]")
@@ -358,36 +403,60 @@ class BeagleMindCLI:
                     source_table.add_column("Type", style="magenta")
                     source_table.add_column("Score", style="yellow")
                     source_table.add_column("Preview", style="dim")
-                    
+
                     for source in result['sources'][:3]:  # Show top 3 sources
-                        preview = source.get('content', '')[:100] + "..." if len(source.get('content', '')) > 100 else source.get('content', '')
+                        preview = (
+                            source.get('content', '')[:100] + "..."
+                            if len(source.get('content', '')) > 100
+                            else source.get('content', '')
+                        )
                         score = source.get('composite_score', source.get('scores', {}).get('composite', 0))
                         source_table.add_row(
                             source.get('file_name', 'Unknown'),
                             source.get('file_type', 'unknown'),
                             f"{score:.3f}" if isinstance(score, (int, float)) else str(score),
-                            preview
+                            preview,
                         )
                     console.print(source_table)
-                
+
                 # Show search info
                 search_info = result.get('search_info', {})
-                console.print(f"\n[dim]📊 Search: {search_info.get('total_found', 0)} docs | "
-                            f"Backend: {search_info.get('backend_used', backend).upper()} | "
-                            f"Iterations: {result.get('iterations_used', 1)}[/dim]")
-                
+                console.print(
+                    f"\n[dim]📊 Search: {search_info.get('total_found', 0)} docs | "
+                    f"Backend: {search_info.get('backend_used', backend).upper()} | "
+                    f"Iterations: {result.get('iterations_used', 1)}[/dim]"
+                )
+
             else:
-                console.print(f"[red]❌ Error: {result.get('error', 'Unknown error occurred')}[/red]")
-                
+                # Normalize error text coming back from the QA system
+                raw_error = str(result.get('error', 'Unknown error occurred'))
+
+            
+                if "invalid_api_key" in raw_error or "Invalid API Key" in raw_error:
+                    console.print(
+                        "[red]❌ Groq API key is missing or invalid.[/red]\n"
+                        "[yellow]Set the GROQ_API_KEY environment variable with a valid key, "
+                        "then rerun the command. See the README Environment Setup section "
+                        "for Groq configuration.[/yellow]"
+                    )
+                else:
+                    console.print(f"[red]❌ Error: {raw_error}[/red]")
+
         except Exception as e:
             console.print(f"[red]Failed to process question: {e}[/red]")
             logger.error(f"Chat error: {e}", exc_info=True)
-    
-    def interactive_chat(self, backend: str = None, model: str = None, 
-                        temperature: float = None, search_strategy: str = "adaptive",
-                        show_sources: bool = False, use_tools: bool = False, collection: str = None):
+
+    def interactive_chat(
+            self,
+            backend: str = None,
+            model: str = None,
+            temperature: float = None,
+            search_strategy: str = "adaptive",
+            show_sources: bool = False,
+            use_tools: bool = False,
+            collection: str = None):
         """Start an interactive chat session with BeagleMind"""
-        
+
         # Create QA system if not exists
         if collection:
             # Recreate QA system with the requested collection
@@ -396,7 +465,7 @@ class BeagleMindCLI:
             self.qa_system = None
         if not self.qa_system:
             self.qa_system = self.get_qa_system()
-        
+
         # Use provided parameters or defaults
         # backend = backend or self.config.get("default_backend", "groq")
         # model = model or self.config.get("default_model", GROQ_MODELS[0])
@@ -404,15 +473,16 @@ class BeagleMindCLI:
         backend = backend or self.config_manager.get("default_backend", "groq")
         # Get available models for the backend
         available_models = self.config_manager.get_models(backend)
-        model = model or self.config_manager.get("default_model", available_models[0] if available_models else "unknown-model")
-        temperature = temperature if temperature is not None else self.config_manager.get("default_temperature", 0.3)
+        model = model or self.config_manager.get(
+            "default_model", available_models[0] if available_models else "unknown-model")
+        temperature = temperature if temperature is not None else self.config_manager.get(
+            "default_temperature", 0.3)
 
-        
         # Validate backend and model
         # if backend not in LLM_BACKENDS:
         #     console.print(f"[red]Error: Invalid backend '{backend}'. Available: {', '.join(LLM_BACKENDS)}[/red]")
         #     return
-        
+
         # if backend == "groq":
         #     available_models = GROQ_MODELS
         # elif backend == "openai":
@@ -422,27 +492,32 @@ class BeagleMindCLI:
 
         available_backends = self.config_manager.get("available_backends", [])
         if backend not in available_backends:
-            console.print(f"[red]Invalid backend: {backend}. Available: {', '.join(available_backends)}[/red]")
+            console.print(
+                f"[red]Invalid backend: {backend}. Available: {
+                    ', '.join(available_backends)}[/red]")
             return
 
         # Get models for the selected backend
         available_models = self.config_manager.get_models(backend)
 
-            
         if model not in available_models:
-            console.print(f"[red]Model '{model}' not available for backend '{backend}'[/red]")
+            console.print(
+                f"[red]Model '{model}' not available for backend '{backend}'[/red]")
             return
-            
+
         if model not in available_models:
-            console.print(f"[red]Error: Model '{model}' not available for backend '{backend}'[/red]")
+            console.print(
+                f"[red]Error: Model '{model}' not available for backend '{backend}'[/red]")
             console.print(f"Available models: {', '.join(available_models)}")
             return
-        
+
         # Display welcome banner
         console.print(f"[bold cyan]{BEAGLEMIND_BANNER}[/bold cyan]")
         console.print("[bold]Interactive Chat Mode[/bold]")
-        console.print(f"[dim]Backend: {backend.upper()} | Model: {model} | Temperature: {temperature}[/dim]\n")
-        
+        console.print(
+            f"[dim]Backend: {
+                backend.upper()} | Model: {model} | Temperature: {temperature}[/dim]\n")
+
         # Show session info
         session_panel = Panel(
             f"[bold]BeagleMind Interactive Chat[/bold]\n\n"
@@ -460,61 +535,71 @@ class BeagleMindCLI:
             border_style="green"
         )
         console.print(session_panel)
-        
+
         conversation_count = 0
-        
+
         try:
             while True:
                 try:
                     # Get user input with a nice prompt
-                    prompt_text = f"[bold cyan]BeagleMind[/bold cyan] [dim]({conversation_count + 1})[/dim] > "
+                    prompt_text = f"[bold cyan]BeagleMind[/bold cyan] [dim]({
+                        conversation_count + 1})[/dim] > "
                     console.print(prompt_text, end="")
-                    
+
                     user_input = input().strip()
-                    
+
                     if not user_input:
                         continue
-                    
+
                     # Handle special commands
-                    if user_input.lower() in ['/exit', '/quit', 'exit', 'quit']:
-                        console.print("[yellow]👋 Goodbye! Thanks for using BeagleMind![/yellow]")
+                    if user_input.lower() in [
+                            '/exit', '/quit', 'exit', 'quit']:
+                        console.print(
+                            "[yellow]👋 Goodbye! Thanks for using BeagleMind![/yellow]")
                         break
-                    
+
                     elif user_input.lower() == '/help':
                         self._show_chat_help()
                         continue
-                    
+
                     elif user_input.lower() == '/sources':
                         show_sources = not show_sources
-                        console.print(f"[green]✓ Source display: {'enabled' if show_sources else 'disabled'}[/green]")
+                        console.print(
+                            f"[green]✓ Source display: {
+                                'enabled' if show_sources else 'disabled'}[/green]")
                         continue
-                    
+
                     elif user_input.lower() == '/tools':
                         use_tools = not use_tools
-                        console.print(f"[green]✓ Tool usage: {'enabled' if use_tools else 'disabled'}[/green]")
+                        console.print(
+                            f"[green]✓ Tool usage: {
+                                'enabled' if use_tools else 'disabled'}[/green]")
                         continue
-                    
+
                     elif user_input.lower() == '/config':
-                        self._show_chat_config(backend, model, temperature, search_strategy, show_sources)
+                        self._show_chat_config(
+                            backend, model, temperature, search_strategy, show_sources)
                         continue
-                    
+
                     elif user_input.lower() == '/clear':
                         os.system('clear' if os.name == 'posix' else 'cls')
-                        console.print(f"[bold cyan]{BEAGLEMIND_BANNER}[/bold cyan]")
-                        console.print("[bold]Interactive Chat Mode - Session Cleared[/bold]\n")
+                        console.print(
+                            f"[bold cyan]{BEAGLEMIND_BANNER}[/bold cyan]")
+                        console.print(
+                            "[bold]Interactive Chat Mode - Session Cleared[/bold]\n")
                         try:
                             # Reset in-RAM conversation history
                             self.qa_system.reset_conversation()
                         except Exception:
                             pass
                         continue
-                    
+
                     # Process regular chat input
                     conversation_count += 1
-                    
+
                     # Show thinking indicator
                     console.print(f"\n[dim]🧠 BeagleMind is thinking...[/dim]")
-                    
+
                     # Process the question
                     self.chat(
                         prompt=user_input,
@@ -525,20 +610,23 @@ class BeagleMindCLI:
                         show_sources=show_sources,
                         use_tools=use_tools
                     )
-                    
+
                     console.print("\n" + "─" * 60 + "\n")
-                    
+
                 except KeyboardInterrupt:
-                    console.print("\n[yellow]Use /exit or /quit to end the session gracefully.[/yellow]")
+                    console.print(
+                        "\n[yellow]Use /exit or /quit to end the session gracefully.[/yellow]")
                     continue
                 except EOFError:
-                    console.print("\n[yellow]👋 Session ended. Goodbye![/yellow]")
+                    console.print(
+                        "\n[yellow]👋 Session ended. Goodbye![/yellow]")
                     break
-                    
+
         except Exception as e:
-            console.print(f"\n[red]Unexpected error in interactive mode: {e}[/red]")
+            console.print(
+                f"\n[red]Unexpected error in interactive mode: {e}[/red]")
             logger.error(f"Interactive chat error: {e}", exc_info=True)
-    
+
     def _show_chat_help(self):
         """Show help information in interactive chat"""
         help_panel = Panel(
@@ -567,9 +655,9 @@ class BeagleMindCLI:
             border_style="blue"
         )
         console.print(help_panel)
-    
-    def _show_chat_config(self, backend: str, model: str, temperature: float, 
-                         search_strategy: str, show_sources: bool):
+
+    def _show_chat_config(self, backend: str, model: str, temperature: float,
+                          search_strategy: str, show_sources: bool):
         """Show current chat configuration"""
         config_panel = Panel(
             f"[bold]Current Session Configuration[/bold]\n\n"
@@ -585,52 +673,75 @@ class BeagleMindCLI:
         console.print(config_panel)
 
 # CLI Command Functions
+
+
 @click.group()
 @click.version_option(version="1.0.0", prog_name="BeagleMind CLI")
 def cli():
     """BeagleMind CLI - Intelligent documentation assistant for Beagleboard projects"""
     pass
 
+
 @cli.command("list-models")
-@click.option('--backend', '-b', type=click.Choice(['groq', 'openai', 'ollama'], case_sensitive=False),
-              help='Show models for specific backend only')
+@click.option(
+    '--backend',
+    '-b',
+    type=click.Choice(['groq', 'openai', 'ollama'], case_sensitive=False),
+    help='Show models for specific backend only')
 def list_models(backend):
     """List available AI models for BeagleMind"""
     beaglemind = BeagleMindCLI()
     beaglemind.list_models(backend)
 
+
 @cli.command()
-@click.option('--prompt', '-p', 
+@click.option('--prompt', '-p',
               help='Your question or prompt for BeagleMind (if not provided, starts interactive mode)')
-@click.option('--backend', '-b', type=click.Choice(LLM_BACKENDS, case_sensitive=False),
-              help='LLM backend to use (groq or ollama)')
+@click.option('--backend', '-b', type=click.Choice(LLM_BACKENDS,
+              case_sensitive=False), help='LLM backend to use (groq or ollama)')
 @click.option('--model', '-m', help='Specific model to use')
-@click.option('--temperature', '-t', type=float, 
+@click.option('--temperature', '-t', type=float,
               help='Temperature for response generation (0.0-1.0)')
-@click.option('--strategy', '-s', 
-              type=click.Choice(['adaptive', 'multi_query', 'context_aware', 'default']),
-              default='adaptive', help='Search strategy to use')
-@click.option('--sources', is_flag=True, 
+@click.option('--strategy',
+              '-s',
+              type=click.Choice(['adaptive',
+                                 'multi_query',
+                                 'context_aware',
+                                 'default']),
+              default='adaptive',
+              help='Search strategy to use')
+@click.option('--sources', is_flag=True,
               help='Show source information with the response')
 @click.option('--tools/--no-tools', default=True,
               help='Enable or disable tool usage (default: enabled)')
 @click.option('--interactive', '-i', is_flag=True,
               help='Force interactive chat session')
-@click.option('--collection', '-c', help='Override the collection name for retrieval (default from config)')
-def chat(prompt, backend, model, temperature, strategy, sources, tools, interactive, collection):
+@click.option('--collection', '-c',
+              help='Override the collection name for retrieval (default from config)')
+def chat(
+        prompt,
+        backend,
+        model,
+        temperature,
+        strategy,
+        sources,
+        tools,
+        interactive,
+        collection):
     """Chat with BeagleMind - Interactive mode by default, or single prompt with -p"""
     beaglemind = BeagleMindCLI()
     if collection:
         # Apply collection override before creating QA system
         beaglemind.config_manager["collection_name"] = collection
         beaglemind.qa_system = None
-    
+
     # Convert tools flag to use_tools boolean (paired flag: --tools to enable)
     use_tools = bool(tools)
-    collection="beagleboard"
+    collection = "beagleboard"
     # Start interactive mode by default when no prompt is provided
     if not prompt:
-        console.print("[dim]Starting interactive chat mode. Use -p 'your question' for single prompt mode.[/dim]\n")
+        console.print(
+            "[dim]Starting interactive chat mode. Use -p 'your question' for single prompt mode.[/dim]\n")
         beaglemind.interactive_chat(
             backend=backend,
             model=model,

@@ -771,25 +771,64 @@ Context:
             logger.error(f"Ollama chat error: {e}")
             return f"Error communicating with Ollama: {str(e)}", []
     
-    def ask_question(self, question: str, search_strategy: str = "adaptive", 
-                    n_results: int = 5, include_context: bool = False, model_name: str = "meta-llama/llama-3.1-70b-versatile", 
-                    temperature: float = 0.3, llm_backend: str = "groq", use_tools: bool = True, auto_approve: bool = False) -> Dict[str, Any]:
+    def ask_question(
+        self,
+        question: str,
+        search_strategy: str = "adaptive",
+        n_results: int = 5,
+        include_context: bool = False,
+        model_name: str = "meta-llama/llama-3.1-70b-versatile",
+        temperature: float = 0.3,
+        llm_backend: str = "groq",
+        use_tools: bool = True,
+        auto_approve: bool = False,
+    ) -> Dict[str, Any]:
         """Enhanced question answering with adaptive search strategies and smart tool integration"""
-        # Use chat_with_tools by default; Ollama will still have no tool access internally
-        if use_tools:
-            logger.info(f"Using chat_with_tools for interactive question: {question[:50]}...")
-            return self.chat_with_tools(
-                question=question, 
-                llm_backend=llm_backend, 
-                model_name=model_name, 
-                temperature=temperature,
-                auto_approve=auto_approve,
-                use_tools=(llm_backend.lower() in ("groq", "openai"))
+        try:
+            # Default path: use chat_with_tools when tools are enabled.
+            # Ollama will still have no internal tool access, only Groq/OpenAI.
+            if use_tools:
+                logger.info(f"Using chat_with_tools for interactive question: {question[:50]}...")
+                return self.chat_with_tools(
+                    question=question,
+                    llm_backend=llm_backend,
+                    model_name=model_name,
+                    temperature=temperature,
+                    auto_approve=auto_approve,
+                    use_tools=(llm_backend.lower() in ("groq", "openai")),
+                )
+
+            # Fallback to traditional RAG approach for simple informational questions
+            logger.info(f"Using traditional RAG for informational question: {question[:50]}...")
+            return self._traditional_rag_response(
+                question,
+                search_strategy,
+                n_results,
+                include_context,
+                model_name,
+                temperature,
+                llm_backend,
             )
-        
-        # Fallback to traditional RAG approach for simple informational questions
-        logger.info(f"Using traditional RAG for informational question: {question[:50]}...")
-        return self._traditional_rag_response(question, search_strategy, n_results, include_context, model_name, temperature, llm_backend)
+
+        except Exception as e:
+            msg = str(e)
+
+            # Groq invalid API key (401)
+            if "invalid_api_key" in msg or "Invalid API Key" in msg:
+                return {
+                    "success": False,
+                    "error": (
+                        "Groq API key missing or invalid. "
+                        "Please set GROQ_API_KEY in your environment. "
+                        "See README -> Environment Setup (Groq)."
+                    ),
+                }
+
+            # generic fallback
+            return {
+                "success": False,
+                "error": msg,
+            }
     
     def _traditional_rag_response(self, question: str, search_strategy: str, n_results: int, include_context: bool, model_name: str, temperature: float, llm_backend: str) -> Dict[str, Any]:
         """Traditional RAG response for informational queries"""
@@ -1131,7 +1170,18 @@ Answer:
             
         except Exception as e:
             logger.error(f"Groq response error: {e}")
-            return f"Error getting response from Groq: {str(e)}"
+            msg = str(e)
+            
+            # Detect 401 / invalid API key from Groq/OpenAI client error.
+        if "invalid_api_key" in msg or "Invalid API Key" in msg:
+            return (
+                "Groq API key is missing or invalid. "
+                "Please set the GROQ_API_KEY environment variable with a valid key. "
+                "See the README Environment Setup section for Groq configuration."
+            )
+
+        # Generic fallback for other Groq errors
+        return f"Error getting response from Groq: {msg}"
     
     def _get_ollama_response(self, prompt: str, model_name: str, temperature: float) -> str:
         """Get response from Ollama LLM"""
