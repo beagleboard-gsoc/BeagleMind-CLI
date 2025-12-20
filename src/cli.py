@@ -358,7 +358,7 @@ class BeagleMindCLI:
             if result.get('success', True):
                 # Display the response
                 console.print("\n" + "="*60)
-                console.print(f"[bold cyan]🤖 BeagleMind Response:[/bold cyan]\n")
+                console.print("[bold cyan]🤖 BeagleMind Response:[/bold cyan]\n")
 
                 answer = result.get('answer', 'No response generated')
                 # Remove meta-thinking if any leaked
@@ -379,7 +379,7 @@ class BeagleMindCLI:
 
                 # Show tool results if any
                 if result.get('tool_results') and len(result['tool_results']) > 0:
-                    console.print(f"\n[bold yellow]🛠️ Tools Used:[/bold yellow]")
+                    console.print("\n[bold yellow]🛠️ Tools Used:[/bold yellow]")
                     tool_table = Table(show_header=True, header_style="bold magenta")
                     tool_table.add_column("Tool", style="cyan")
                     tool_table.add_column("Status", style="green")
@@ -397,7 +397,7 @@ class BeagleMindCLI:
 
                 # Show sources if requested
                 if show_sources and result.get('sources'):
-                    console.print(f"\n[bold blue]📚 Sources:[/bold blue]")
+                    console.print("\n[bold blue]📚 Sources:[/bold blue]")
                     source_table = Table(show_header=True, header_style="bold blue")
                     source_table.add_column("File", style="cyan")
                     source_table.add_column("Type", style="magenta")
@@ -598,7 +598,7 @@ class BeagleMindCLI:
                     conversation_count += 1
 
                     # Show thinking indicator
-                    console.print(f"\n[dim]🧠 BeagleMind is thinking...[/dim]")
+                    console.print("\n[dim]🧠 BeagleMind is thinking...[/dim]")
 
                     # Process the question
                     self.chat(

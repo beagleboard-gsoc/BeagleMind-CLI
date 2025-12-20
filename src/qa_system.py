@@ -5,8 +5,10 @@ import requests
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
 import re
-from .config import GROQ_API_KEY, RAG_BACKEND_URL, COLLECTION_NAME
-from .tools_registry import enhanced_tool_registry_optimized as tool_registry
+
+from config import GROQ_API_KEY, RAG_BACKEND_URL, COLLECTION_NAME
+from tools_registry import enhanced_tool_registry_optimized as tool_registry
+
 
 
 # Setup logging - suppress verbose output
