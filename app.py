@@ -1,25 +1,14 @@
-#!/usr/bin/env python3
-"""
-Gradio App Launcher for RAG Chatbot
-
-Run this script to launch the web interface for the RAG system.
-"""
-
-import sys
 import os
+import sys
 
-# Add the src directory to Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+SRC_DIR = os.path.join(ROOT_DIR, "src")
+
+if SRC_DIR not in sys.path:
+    sys.path.insert(0, SRC_DIR)
 
 if __name__ == "__main__":
-    try:
-        from src.gradio_app import main
-        main()
-    except ImportError as e:
-        print(f"Import error: {e}")
-        print("Please make sure all dependencies are installed:")
-        print("pip install gradio")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Error launching app: {e}")
-        sys.exit(1)
+    from gradio_app import main
+    main()
+
+
