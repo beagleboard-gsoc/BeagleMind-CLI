@@ -1,5 +1,4 @@
-# Enhanced Tool Registry with optimized implementations
-# filepath: /home/fayez/gsoc/rag_poc/src/tools/enhanced_tool_registry_optimized.py
+
 
 import os
 import json
@@ -814,4 +813,4 @@ class OptimizedToolRegistry:
         return results
 
 # Create global instance
-enhanced_tool_registry_optimized = OptimizedToolRegistry()
+enhanced_tool_registry_optimized = OptimizedToolRegistry ()
