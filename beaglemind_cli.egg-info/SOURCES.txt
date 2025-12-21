@@ -6,6 +6,7 @@ beaglemind_cli.egg-info/dependency_links.txt
 beaglemind_cli.egg-info/entry_points.txt
 beaglemind_cli.egg-info/requires.txt
 beaglemind_cli.egg-info/top_level.txt
+src/__init__.py
 src/cli.py
 src/config.py
 src/gradio_app.py

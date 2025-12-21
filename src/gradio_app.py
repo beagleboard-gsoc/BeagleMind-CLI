@@ -3,8 +3,8 @@ import logging
 import re
 from typing import List, Tuple
 
-from qa_system import QASystem
-import config
+from .qa_system import QASystem
+from . import config
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -496,7 +496,34 @@ class GradioRAGApp:
                 self.selected_backend = backend
                 self.selected_model = model_name
                 self.temperature = temperature
-                return self.chat_with_bot(message, history, model_name, temperature, backend)
+                
+                
+                try:   
+                    chat_result = self.chat_with_bot(message, history, model_name, temperature, backend)
+                    
+                    if isinstance(chat_result, tuple) and len(chat_result) >=1:
+                        response = str(chat_result[0])
+                        
+                    else:
+                        response = str(chat_result)
+                        
+                    new_message = {
+                        "role": "user",
+                        "content": message
+                    }  
+                    
+                    bot_message = {
+                        "role": "assistant",
+                        "content": response
+                    }
+                    new_history = history +[new_message, bot_message]
+                    source_text = f"Sources ready"
+                    
+                    return "" , new_history, source_text
+                except Exception as e:
+                    error_message = f"Error: {str(e)}"
+                    new_history = history + [{"role": "user", "content": message}, {"role": "assistant", "content": error_msg}]
+                    return "", new_history, "No sources found"
 
             submit_btn.click(
                 fn=submit_message,
