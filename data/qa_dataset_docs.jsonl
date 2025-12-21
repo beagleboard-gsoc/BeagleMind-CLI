@@ -1,0 +1,2 @@
+{"question": "What is BeagleMind?", "answer": "BeagleMind is an intelligent documentation assistant for Beagleboard projects that uses RAG and multiple LLM providers.", "source_type": "docs", "source_id": "internal:overview", "tags": ["beaglemind", "overview"]}
+{"question": "Which LLM providers does BeagleMind support?", "answer": "BeagleMind currently supports OpenAI, OpenRouter, Groq, and Ollama via an extensible provider abstraction.", "source_type": "docs", "source_id": "internal:providers", "tags": ["providers", "llm"]}
