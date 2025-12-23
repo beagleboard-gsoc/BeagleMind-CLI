@@ -9,6 +9,7 @@ beaglemind_cli.egg-info/top_level.txt
 src/__init__.py
 src/cli.py
 src/config.py
+src/download_hf_dataset.py
 src/gradio_app.py
 src/main.py
 src/qa_system.py
