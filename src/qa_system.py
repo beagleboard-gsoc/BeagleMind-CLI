@@ -10,13 +10,13 @@ from .config import GROQ_API_KEY, RAG_BACKEND_URL, COLLECTION_NAME
 from .tools_registry import enhanced_tool_registry_optimized as tool_registry
 
 
+# Setup logging - enable debug output
 
-# Setup logging - suppress verbose output
-logging.basicConfig(level=logging.CRITICAL)  # Only show critical errors
+logging.basicConfig(level=logging.INFO)  # Show info and above
+
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.CRITICAL)
 
-
+logger.setLevel(logging.INFO)
 
 class QASystem:
     def __init__(self, backend_url: str = None, collection_name: str = None):
@@ -75,6 +75,7 @@ class QASystem:
 
     def search(self, query: str, n_results: int = 5, rerank: bool = True, collection_name: Optional[str] = None) -> Dict[str, Any]:
         """Search documents using the backend API"""
+        logger.info(f"DEBUG: Searching for query: '{query}' in collection: {collection_name or self.collection_name}, n_results: {n_results}, rerank: {rerank}")
         try:
             timeout_sec = float(os.getenv('RAG_TIMEOUT_SECONDS', '30'))
             url = f"{self.backend_url}/retrieve"
@@ -86,11 +87,13 @@ class QASystem:
                 "rerank": rerank
             }
             response = requests.post(url, json=payload, timeout=timeout_sec)
-            
+
             if response.status_code == 200:
                 result = response.json()
+                docs = result.get('documents', [])
+                logger.info(f"DEBUG: Retrieved {len(docs)} documents. First doc preview: {docs[0][:200] if docs else 'None'}")
                 return {
-                    'documents': result.get('documents', []),
+                    'documents': docs,
                     'metadatas': result.get('metadatas', []),
                     'distances': result.get('distances', []),
                     'total_found': result.get('total_found', 0),
@@ -106,7 +109,7 @@ class QASystem:
                     'retrieval_ok': False,
                     'error': f"HTTP {response.status_code}: {response.text[:300]}"
                 }
-                
+
         except Exception as e:
             logger.error(f"Error during search: {e}")
             return {'documents': [], 'metadatas': [], 'distances': [], 'retrieval_ok': False, 'error': str(e)}

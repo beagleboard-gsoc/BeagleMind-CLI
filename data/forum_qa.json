@@ -1,0 +1,53 @@
+{
+  "version": "v1_20251231",
+  "source": "BeagleMind Forum Thread 40806",
+  "total_examples": 25,
+  "forum_qa": [
+    {
+      "id": 1,
+      "question": "What is BeagleMind project?",
+      "answer": "A Conversational AI System for BeagleBoard. Fine-tuning Llama 3/Mixtral/Gemma on BeagleBoard data using Python, scraping, LoRA/QLoRA. Deploy on Hugging Face with Gradio interface.",
+      "url": "https://forum.beagleboard.org/t/beaglemind/40806",
+      "topic": "overview",
+      "date": "2025"
+    },
+    {
+      "id": 2,
+      "question": "Should final model deploy on board or cloud?",
+      "answer": "Cloud deployment essential for test reports. Local deployment advanced using quantization. BeagleBone AI-64 has 4GB RAM but system takes 1-1.5GB.",
+      "url": "https://forum.beagleboard.org/t/beaglemind/40806",
+      "topic": "deployment"
+    },
+    {
+      "id": 3,
+      "question": "Why not use RAG instead of fine-tuning?",
+      "answer": "RAG good for up-to-date info but fine-tuning better for domain understanding. Use 'fine-tuning with retrieval' - quality dataset + RAG for latest context.",
+      "url": "https://forum.beagleboard.org/t/beaglemind/40806?page=2",
+      "topic": "rag_vs_finetuning"
+    },
+    {
+      "id": 4,
+      "question": "How to scrape BeagleBoard docs?",
+      "answer": "Don't scrape website. Download complete docs source code directly. Write Python script to clean noise and format data properly.",
+      "url": "https://forum.beagleboard.org/t/beaglemind/40806?page=2",
+      "topic": "data_prep"
+    },
+    {
+      "id": 5,
+      "question": "Can we use Phi-2/3 small models?",
+      "answer": "Yes, small models like Phi-2/3 possible. But for better results need larger models like LLaMA-3B. Test quantization first.",
+      "url": "https://forum.beagleboard.org/t/beaglemind/40806?page=2",
+      "topic": "model_selection"
+    }
+  ],
+  "example_queries": [
+    "BeagleMind project overview",
+    "RAG vs fine-tuning comparison",
+    "Can LLM run on BeagleBone AI-64?",
+    "How to create BeagleBoard docs dataset?",
+    "GSoC BeagleMind deliverables",
+    "What is LoRA/QLoRA?",
+    "How to deploy Gradio interface?",
+    "Model quantization techniques"
+  ]
+}
