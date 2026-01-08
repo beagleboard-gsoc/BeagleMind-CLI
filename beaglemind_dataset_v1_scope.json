@@ -1,0 +1,32 @@
+{
+  "version": "v1_20251231",
+  "scope": {
+    "discord": {
+      "channels": [
+        "beaglemind",
+        "gsoc",
+        "support",
+        "beaglebone"
+      ],
+      "time_start": "2025-01-01",
+      "time_end": "2025-12-31",
+      "target_convos": 40
+    },
+    "forum": {
+      "threads": [
+        "40806",
+        "42038"
+      ],
+      "target_qa": 25
+    },
+    "docs": {
+      "sections": [
+        "getting-started",
+        "common-issues",
+        "gsoc",
+        "overview"
+      ],
+      "target_examples": 15
+    }
+  }
+}

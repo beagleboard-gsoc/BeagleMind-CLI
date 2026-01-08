@@ -29,8 +29,6 @@ COLLECTION_NAME = 'beagleboard'
 
 RAG_BACKEND_URL = 'https://mind-api.beagleboard.org/api'
 
-import os
-import json
 
 class ConfigManager:
     def __init__(self, path="~/.beaglemind_config.json"):
