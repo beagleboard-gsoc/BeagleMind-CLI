@@ -11,4 +11,13 @@ data_scraping
 model_onnx
 onnx
 qwen25
-beaglemind_cli.egg-info
+beaglemind_cli.egg-info/
+src/cli/__pycache__
+src/helpers/__pycache__
+src/models/__pycache__
+src/prompts/__pycache__
+src/config/__pycache__
+src/data_processing/__pycache__
+src/evaluation/__pycache__
+src/services/__pycache__
+src/types/__pycache__
