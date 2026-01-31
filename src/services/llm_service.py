@@ -75,6 +75,23 @@ class LLMService:
         )
 
         tools = tools or []
+        # Fail-safe: Ensure retrieve_context tool is passed for Groq/LLama models
+        if tools and not any(t.get('function', {}).get('name') == 'retrieve_context' for t in tools):
+            # Inject the tool manually if missing
+            tools.append({
+                "type": "function",
+                "function": {
+                    "name": "retrieve_context",
+                    "description": "Retrieve relevant context from the knowledge base",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "query": {"type": "string"}
+                        },
+                        "required": ["query"]
+                    }
+                }
+            })
 
         try:
             completion = client.chat.completions.create(
