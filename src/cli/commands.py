@@ -87,3 +87,16 @@ def chat(prompt, backend, model, temperature, strategy, sources, tools, interact
             show_sources=sources,
             use_tools=use_tools
         )
+
+
+@cli.command()
+@click.argument('path', type=click.Path(exists=True))
+def ingest(path):
+    """Ingest documentation from a directory."""
+    from .display import DisplayManager
+    display = DisplayManager()
+    
+    display.show_info(f"Ingesting documentation from: {path}")
+    # TODO: Connect this to the actual ingestion logic in BeagleMindCLI
+    # beaglemind = BeagleMindCLI()
+    # beaglemind.ingest(path)

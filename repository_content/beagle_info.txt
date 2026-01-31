@@ -1,0 +1,3 @@
+The BeagleBoard is a low-power open-source hardware single-board computer produced by Texas Instruments.
+BeagleMind is an AI assistant designed to help developers use BeagleBoard.
+To ingest data, you must place files in the repository_content folder.
