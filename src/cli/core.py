@@ -174,3 +174,16 @@ class BeagleMindCLI:
             show_sources=show_sources,
             use_tools=use_tools
         )
+
+    def doctor(self):
+        """Run system diagnostics and display results"""
+        from .display import DisplayManager
+        from ..services.doctor_service import DoctorService
+        
+        display = DisplayManager()
+        doctor = DoctorService()
+        
+        with display.show_spinner("Running diagnostics..."):
+            results = doctor.run_all_checks()
+        
+        display.show_doctor_results(results)
