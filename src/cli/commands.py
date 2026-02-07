@@ -87,3 +87,10 @@ def chat(prompt, backend, model, temperature, strategy, sources, tools, interact
             show_sources=sources,
             use_tools=use_tools
         )
+
+
+@cli.command("doctor")
+def doctor():
+    """Diagnose BeagleMind setup and connectivity issues"""
+    beaglemind = BeagleMindCLI()
+    beaglemind.doctor()

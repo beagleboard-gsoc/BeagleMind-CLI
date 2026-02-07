@@ -156,3 +156,83 @@ class DisplayManager:
 ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═════╝
 """
         console.print(f"[bold cyan]{banner}[/bold cyan]")
+
+    def show_doctor_results(self, results: Dict[str, Any]):
+        """Display diagnostic results with colors and icons"""
+        console.print()
+        console.print(Panel.fit(
+            "[bold cyan]BeagleMind Doctor[/bold cyan] - System Diagnostics",
+            border_style="cyan",
+            padding=(0, 2)
+        ))
+        console.print()
+
+        # Helper to get status icon and color
+        def get_status_display(status: str) -> tuple:
+            displays = {
+                "success": ("[green]●[/green]", "green"),
+                "warning": ("[yellow]●[/yellow]", "yellow"),
+                "error": ("[red]●[/red]", "red"),
+                "info": ("[blue]●[/blue]", "blue")
+            }
+            return displays.get(status, ("[dim]●[/dim]", "dim"))
+
+        # Config check
+        config = results["config"]
+        icon, color = get_status_display(config['status'])
+        console.print(f"{icon} [bold]Configuration[/bold]")
+        console.print(f"  └─ {config['message']}")
+        if config.get("detail"):
+            console.print(f"     [dim]{config['detail']}[/dim]")
+        console.print()
+
+        # API Keys check - using a cleaner format
+        api_keys = results["api_keys"]
+        icon, color = get_status_display(api_keys['status'])
+        console.print(f"{icon} [bold]API Keys[/bold]")
+        
+        for key, info in api_keys.get("keys", {}).items():
+            if info["set"]:
+                status_display = "[green]Set ✓[/green]"
+            else:
+                status_display = "[dim]Not set[/dim]"
+            optional_tag = " [dim](optional)[/dim]" if info.get("optional") else ""
+            console.print(f"  ├─ {key}: {status_display}{optional_tag}")
+        
+        if api_keys.get("detail"):
+            console.print(f"  └─ [yellow]{api_keys['detail']}[/yellow]")
+        console.print()
+
+        # RAG Backend check
+        rag = results["rag_backend"]
+        icon, color = get_status_display(rag['status'])
+        console.print(f"{icon} [bold]RAG Backend[/bold]")
+        console.print(f"  └─ {rag['message']}")
+        if rag.get("detail"):
+            console.print(f"     {rag['detail']}")
+        if rag.get("url"):
+            console.print(f"     [dim]{rag['url']}[/dim]")
+        console.print()
+
+        # Ollama check
+        ollama = results["ollama"]
+        icon, color = get_status_display(ollama['status'])
+        console.print(f"{icon} [bold]Ollama[/bold]")
+        console.print(f"  └─ {ollama['message']}")
+        if ollama.get("detail"):
+            console.print(f"     {ollama['detail']}")
+        if ollama.get("models"):
+            models_str = ", ".join(ollama['models'])
+            console.print(f"     [cyan]{models_str}[/cyan]")
+        console.print()
+
+        # Overall status with better visual separation
+        console.print("─" * 80)
+        overall = results["overall_status"]
+        if overall == "success":
+            console.print("[bold green]✓[/bold green] All systems operational!")
+        elif overall == "warning":
+            console.print("[bold yellow]![/bold yellow] Some issues detected, but BeagleMind should work")
+        else:
+            console.print("[bold red]✗[/bold red] Critical issues detected, please fix before using BeagleMind")
+        console.print()
