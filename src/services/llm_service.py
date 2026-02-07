@@ -75,6 +75,8 @@ class LLMService:
         )
 
         tools = tools or []
+        
+       
 
         try:
             completion = client.chat.completions.create(
