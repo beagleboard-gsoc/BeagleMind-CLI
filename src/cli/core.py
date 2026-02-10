@@ -11,6 +11,8 @@ from pathlib import Path
 
 from ..qa_system import QASystem
 from ..config import ConfigManager, COLLECTION_NAME
+from .display import DisplayManager
+from ..services.doctor_service import DoctorService
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -174,3 +176,13 @@ class BeagleMindCLI:
             show_sources=show_sources,
             use_tools=use_tools
         )
+
+    def doctor(self):
+        """Run system diagnostics and display results"""
+        display = DisplayManager()
+        doctor = DoctorService()
+        
+        with display.show_spinner("Running diagnostics..."):
+            results = doctor.run_all_checks()
+        
+        display.show_doctor_results(results)
