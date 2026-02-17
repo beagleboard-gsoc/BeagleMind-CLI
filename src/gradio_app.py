@@ -61,6 +61,17 @@ class GradioRAGApp:
             logger.error(f"Failed to initialize RAG system: {e}")
             raise
     
+    def get_models_for_backend(self, backend: str) -> List[str]:
+        """Return available models for the selected backend"""
+        if backend == "groq":
+            return GROQ_MODELS
+        elif backend == "openai":
+            return OPENAI_MODELS
+        elif backend == "ollama":
+            return OLLAMA_MODELS
+        else:
+            return []
+
     def clean_llm_response(self, response: str) -> str:
         """Clean LLM response by removing thinking tags and extracting actual answer"""
         if not response:
