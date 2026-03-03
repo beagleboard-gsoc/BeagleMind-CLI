@@ -7,6 +7,7 @@ from typing import List
 
 from .core import BeagleMindCLI
 from ..config import ConfigManager
+from .display import DisplayManager
 
 
 def get_available_backends() -> List[str]:
@@ -18,7 +19,14 @@ def get_available_backends() -> List[str]:
 @click.group()
 @click.version_option(version="1.0.0", prog_name="BeagleMind CLI")
 def cli():
-    """BeagleMind CLI - Intelligent documentation assistant for Beagleboard projects"""
+    """
+    BeagleMind CLI - Intelligent documentation assistant for Beagleboard projects.
+    
+    The BeagleBoard is a low-power open-source hardware single-board computer produced by Texas Instruments.
+    BeagleMind is an AI assistant designed to help developers use BeagleBoard.
+    
+    To ingest data, you must place files in the repository_content folder.
+    """
     pass
 
 
@@ -63,7 +71,6 @@ def chat(prompt, backend, model, temperature, strategy, sources, tools, interact
 
     # Start interactive mode by default when no prompt is provided
     if not prompt:
-        from .display import DisplayManager
         display = DisplayManager()
         display.show_warning("Starting interactive chat mode. Use -p 'your question' for single prompt mode.\n")
 
@@ -87,6 +94,16 @@ def chat(prompt, backend, model, temperature, strategy, sources, tools, interact
             show_sources=sources,
             use_tools=use_tools
         )
+
+
+@cli.command()
+@click.argument('path', type=click.Path(exists=True))
+def ingest(path):
+    """Ingest documentation from a directory."""
+    display = DisplayManager()
+    
+    display.show_info(f"Ingesting documentation from: {path}")
+    # TODO: Connect this to the actual ingestion logic in BeagleMindCLI
 
 
 @cli.command("doctor")

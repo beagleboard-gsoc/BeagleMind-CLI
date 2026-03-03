@@ -37,12 +37,8 @@ class ToolService:
     def execute_tool(self, function_name: str, function_args: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a tool function by name with given arguments"""
         try:
-            if hasattr(tool_registry, function_name):
-                method = getattr(tool_registry, function_name)
-                result = method(**function_args)
-                return result
-            else:
-                return {"success": False, "error": f"Unknown function: {function_name}"}
+            # Delegate completely to the registry
+            return tool_registry.execute_tool(function_name, **function_args)
         except Exception as e:
             return {"success": False, "error": f"Tool execution error: {str(e)}"}
 
@@ -52,6 +48,11 @@ class ToolService:
         from ..helpers.permission_handler import permission_handler
         
         requires_permission = function_name in ["write_file", "edit_file_lines"]
+        
+        # Retrieval does not require permission
+        if function_name == "retrieve_context":
+            requires_permission = False
+
         user_approved = auto_approve
         display = get_tool_display()
         
